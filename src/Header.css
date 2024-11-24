@@ -1,0 +1,45 @@
+/* HOVER */
+
+.hover__list:hover {
+    /* background-color: #E0DFFF; */
+    border-radius: 7px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 768px) {
+ 
+    .header__responsive {
+        position: fixed;
+        padding: 15px;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000; /* Ensure this is higher than the z-index of the paper */
+        display: flex;
+        justify-content: center; /* Center the content horizontally */
+        align-items: center;
+        background: white; /* Optional: to give a background to the header */
+    }
+}
+
+@media (max-width: 634px ) {
+    .menu__craft {
+        display: flex;
+        flex-direction: row;
+        justify-content: center; /* Center the items within the menu */
+        align-items: center;
+        gap: 15px;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 10px 10px 20px rgba(0, 0, 0, 0.2);
+        background-color: #FFFFFF;
+        color: black;
+    }
+}
+
+@media (max-width: 450px) {
+    .container__btn {
+        display: none !important;
+    }
+}

@@ -1,38 +1,104 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+  
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
+
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 4px;
+    width: 300px;
+    margin-right: 20px;
+    position: relative;
+  }
+  
+  .close {
+    cursor: pointer;
+    font-size: 20px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+  }
+
+.text-editor {
+  z-index: -1;
+  position: absolute;
+  padding: 0;
+  background-color: transparent;
+  border:none;
+  outline:none;
+  color:transparent;
+  white-space: pre-wrap;
+  cursor: text;
+  display: 'block';
+  opacity: 0;
+  top: 0;
+  left: 0;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+.tippy-box[data-theme~='bgpalette'] {
+  background: none;
+  color: "#FFFFFF";
+}
+.tippy-box[data-theme~='elpalette'] {
+  background: none;
+  margin-bottom: '12px';
+}
+
+.tippy-box[data-theme~='searchpalette'] {
+  background: transparent;
+  color: "#FFFFFF";
+}
+
+
+.design-pallete {
+  color: black;
+  border: 2px solid white;
+  border-radius: 10px;
+  padding: 5px;
+  margin: 15px;
+  background-color: white;
+  display: inline-block;
+  vertical-align: top;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+
+.element-pallete {
+  color: black;
+  border: 2px solid white;
+  border-radius: 10px;
+  padding: 10px;
+  background-color: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  white-space: nowrap;
+  width: 100%;
+}
+
+.font-item {
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  text-align: center;
+  margin: 5px;
+  padding: 5px;
+  cursor: pointer;
 }
 
-.App-link {
-  color: #61dafb;
+.style-element {
+  margin: 5px;
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 6px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.font-item:hover {
+  background-color: rgb(12, 25, 39, 0.062);
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0,0,0, 0.4);
+}
+
+.style-element:hover {
+  background-color: rgba(12, 25, 39, 0.062);
+  box-shadow: 0 4px 8px rgba(0,0,0, 0.4);
 }

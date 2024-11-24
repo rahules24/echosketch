@@ -1,0 +1,155 @@
+import { dia, g, linkTools, highlighters } from '@joint/core';
+
+import AddLabel from './AddLabel';
+import AddDoubleClickTools from './AddTools';
+
+const PaperEvents = (
+    paper,
+    panZoomInstance,
+    elementRef,
+    idRef,
+    textEditorRef,
+    selectedToolRef,
+    selectedFontRef,
+    strokeRef,
+    fillRef,
+    roughRef,
+    borderRef,
+    styleRef,
+    setElementType,
+    commandManager,
+    graph,
+    AOPelements,
+    removeAllTools,
+  ) => {
+
+    const paperEvents = {
+
+        /** LINK EVENTS */
+        'link:mouseenter': function (linkView) {
+          linkView.addTools(new dia.ToolsView({
+            tools: [
+              new linkTools.Vertices({ snapRadius: 0 }),
+              new linkTools.TargetArrowhead(),
+              new linkTools.Remove({
+                distance: 20
+              })
+            ]
+          }));
+        },
+        'link:mouseleave': function (linkView) {
+          linkView.removeTools();
+        },
+        'link:pointerup': function(linkView) {
+            const link = linkView.model;
+            const source = link.getSourceElement();
+            const target = link.getTargetElement();
+            if (!source || !target || source === target) {
+              link.remove();
+            }
+            selectedToolRef.current = '';
+          },
+
+        /** ELEMENT EVENTS */
+        'element:pointerdown': function (elementView, evt) {
+          idRef.current = evt.target.id;
+          removeAllTools(paper, graph, true, true);
+          elementRef.current = elementView.model;
+          if (selectedToolRef.current ==='select') panZoomInstance.enablePan();
+          textEditorRef.current.blur();
+          highlighters.mask.add(elementView, 'body', elementView.model["id"], {
+            layer: 'back',
+            padding: 5,
+            attrs: {
+                'stroke-width': 3,
+                'stroke-linecap': 'round',
+                'stroke': 'rgba(63, 0, 255, 0.5)',
+            },
+          });
+        },
+        'element:pointerdblclick': function (elementView) {
+          elementRef.current = null;
+          removeAllTools(paper, graph, false, true);
+          AddDoubleClickTools(elementView, textEditorRef, setElementType);
+          AddLabel(commandManager, elementView, textEditorRef);
+        },
+        
+        /** PAPER EVENTS */
+        'blank:pointerdown': function(evt, x, y) {
+          removeAllTools(paper, graph, true, true);
+          if (selectedToolRef.current ==='') panZoomInstance.disablePan();
+          else if (selectedToolRef.current ==='select') panZoomInstance.enablePan();
+          if (selectedToolRef.current !== 'dashedLink' && selectedToolRef.current !== 'solidLink') {
+            graph.trigger('batch:stop');
+            graph.trigger('batch:start');
+          }
+          if ((selectedToolRef.current === "MIE" || selectedToolRef.current === "KE" || selectedToolRef.current === "AO" || selectedToolRef.current === "AOP") && evt.button === 0){
+            var data = evt.data = {};
+            var cell;
+            cell = AOPelements.create(selectedFontRef,
+              selectedToolRef,
+              strokeRef,
+              fillRef,
+              roughRef,
+              borderRef,
+              styleRef)
+            cell.position(x, y);
+            data.x = x;
+            data.y = y;
+            cell.addTo(this.model);
+            data.cell = cell;
+          }
+          textEditorRef.current.blur();
+        },
+        'blank:pointermove': function(evt, x, y) {
+          if (selectedToolRef.current !=="select" && selectedToolRef.current !== ''){
+            panZoomInstance.disablePan()
+            var data = evt.data;
+            var cell = data.cell;
+            var bbox = new g.Rect(data.x, data.y, x - data.x, y - data.y);
+            bbox.normalize();
+            if (cell){
+            cell.set({
+              position: { x: bbox.x, y: bbox.y },
+              size: { width: Math.max(bbox.width, 1), height: Math.max(bbox.height, 1) }
+            });
+          }
+        }
+        },
+        'blank:pointerup': function(evt) {
+          graph.trigger('batch:stop');
+          if (selectedToolRef.current === 'KE' || selectedToolRef.current === 'MIE' || selectedToolRef.current === 'AO' || selectedToolRef.current === 'AOP'){
+            const data = evt.data;
+            const cell = data.cell;
+            if (cell) {
+              const cellView = paper.findViewByModel(cell);
+              if (cellView && idRef.current !== evt.target.id) {
+                  highlighters.mask.add(cellView, 'body', cellView.model["id"], {
+                  layer: 'back',
+                  padding: 5,
+                  attrs: {
+                      'stroke-width': 3,
+                      'stroke-linecap': 'round',
+                      'stroke': 'rgba(63, 0, 255, 0.5)',
+                  },
+                });
+                elementRef.current = cellView.model;
+              }
+              const size = cell.size();
+              if (size.width < 20 || size.height < 20) cell.remove();
+            }
+          }
+          evt.handled = false;
+          graph.getLinks().forEach(link => {
+            const source = link.getSourceElement();
+            const target = link.getTargetElement();
+            if (!source || !target) {
+              link.remove();
+            }
+          });
+        },
+    };
+
+  return paperEvents;
+}
+export default PaperEvents

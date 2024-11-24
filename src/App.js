@@ -1,10 +1,11 @@
+import React from "react";
+import './index.css';
 import './App.css';
+import Paper from './components/Paper';
 
 function App() {
   return (
-    <div className="App">
-      <h1>EchoSketch</h1>
-    </div>
+      <Paper />
   );
 }
 
