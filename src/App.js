@@ -5,7 +5,7 @@ import Paper from './components/Paper';
 
 function App() {
   return (
-      <Paper />
+    <Paper />
   );
 }
 

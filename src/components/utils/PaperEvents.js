@@ -16,7 +16,6 @@ const PaperEvents = (
     roughRef,
     borderRef,
     styleRef,
-    setElementType,
     commandManager,
     graph,
     AOPelements,
@@ -70,7 +69,7 @@ const PaperEvents = (
         'element:pointerdblclick': function (elementView) {
           elementRef.current = null;
           removeAllTools(paper, graph, false, true);
-          AddDoubleClickTools(elementView, textEditorRef, setElementType);
+          AddDoubleClickTools(elementView, textEditorRef);
           AddLabel(commandManager, elementView, textEditorRef);
         },
         

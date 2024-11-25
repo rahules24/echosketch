@@ -1,8 +1,7 @@
 import { dia, elementTools } from '@joint/core';
-import { removeFormData } from '../../redux/slices/form/form'
 import CreateResizeButton from './ResizeButton';
 
-const AddDoubleClickTools = (elementView, textEditorRef, setElementType) => {
+const AddDoubleClickTools = (elementView, textEditorRef) => {
 
     elementView.addTools(new dia.ToolsView({
       tools: [
@@ -10,7 +9,6 @@ const AddDoubleClickTools = (elementView, textEditorRef, setElementType) => {
           useModelGeometry: false,
           x: '100%',
           action: function () {
-            const objectID = elementView.model.id; /*** Extracting the id of the element */
             elementView.model.remove(); // Remoing element from the diagram manually
           },
         }),

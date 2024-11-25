@@ -1,6 +1,6 @@
 //libraries
 import { connectionStrategies, dia, shapes, util } from '@joint/core';
-import { useLayoutEffect, useRef, useState, useEffect } from 'react';
+import { useLayoutEffect, useRef, useEffect } from 'react';
 import rough from 'roughjs';
 import svgPanZoom from 'svg-pan-zoom';
 
@@ -19,11 +19,9 @@ import PaperEvents from './utils/PaperEvents';
 
 const Paper = () => {
 
-  const [elementType, setElementType] = useState(null);
-  const [graph, setGraph] = useState('');
-
   /**paper and papermodel ref */
   const paperRef = useRef(null);
+  const paperSmallRef = useRef(null);
   const paperGraph = useRef(null);
   const commandRef = useRef(null);
   const graphRef = useRef(null);
@@ -34,7 +32,7 @@ const Paper = () => {
   const fillRef = useRef("#ffffff");
   const styleRef = useRef('solid');
   const roughRef = useRef([0.5]);
-  const bgRef = useRef();
+  const bgRef = useRef('#FFFFFF');
 
   /** tool refs */
   const selectedToolRef = useRef('');
@@ -69,20 +67,24 @@ const Paper = () => {
     });
   };
 
-  const filterGraph = (data) => {
-    return {
-      ...data,
-      cells: data.cells.filter(cell => {
-        if (cell.type === "AOPelements") {
-          return ["MIE", "KE", "AOP", "AO"].includes(cell.elementtype);
-        }
-        return true; // Keep all other types
-      })
-    };
+  const updateSmallPaperSize = () => {
+    if (paperSmallRef.current) {
+      const smallPaperElement = paperSmallRef.current;
+      
+      const width = window.innerWidth * 0.25; 
+      const height = window.innerHeight * 0.25;
+      const left = window.innerWidth - width - 20; 
+      const top = 20;
+
+      smallPaperElement.style.width = `${width}px`;
+      smallPaperElement.style.height = `${height}px`;
+      smallPaperElement.style.left = `${left}px`;
+      smallPaperElement.style.top = `${top}px`;
+    }
   };
 
   useLayoutEffect(() => {
-
+  
     var customNamespace = {
       ...shapes,
       dia: dia,
@@ -100,6 +102,7 @@ const Paper = () => {
 
     /*   Initializing the paper   */
       const paper = new dia.Paper({
+      // el: document.getElementById('paper-multiple-papers'),
       el: paperRef.current,
       height: "100%", // Pass whole screen as svg area for drawing
       width: "100%",
@@ -124,8 +127,17 @@ const Paper = () => {
       }
     });
 
+    const paperSmall = new dia.Paper({
+      el: paperSmallRef.current,
+      model: graph,
+      gridSize: 1,
+      interactive: false,
+      cellViewNamespace: customNamespace,
+    });
+
     /*  making paper rough */
     const Rough = rough.svg(paper.svg);
+    const RoughSmall = rough.svg(paperSmall.svg);
     const borderEl = Rough.rectangle(0, 0,
                           window.innerWidth,
                           window.innerHeight,
@@ -134,6 +146,7 @@ const Paper = () => {
                       });
     paper.svg.appendChild(borderEl);
     paper.rough = Rough;
+    paperSmall.rough = RoughSmall;
 
     /*  Integrating svg-pan-zoom with paper   */
     const panZoomInstance = svgPanZoom(Rough.svg, {
@@ -141,15 +154,18 @@ const Paper = () => {
       minZoom: 0.1,
       maxZoom: 5,
       onUpdatedCTM: function(matrix) {
+        const scaleFactor = 0.25;
         const { a, d, e, f } = matrix;
         const { a: ca, d: cd, e: ce, f: cf } = panZoomInstance.getZoom();
         const translateChanged = e !== ce || f !== cf;
         if (translateChanged) {
           paper.trigger('translate', e - ce, f - cf);
+          paperSmall.translate(e * scaleFactor, f * scaleFactor);
         }
         const scaleChanged = a !== ca || d !== cd;
         if (scaleChanged) {
           paper.trigger('scale', a, d, e, f);
+          paperSmall.scale(a * scaleFactor, d * scaleFactor);
         }
       }
     });
@@ -166,16 +182,14 @@ const Paper = () => {
     
     commandRef.current = commandManager;
 
-    /**
-     * 
-     * Function to make paper responsive
-     */
+    /** Function to make paper responsive */
+    updateSmallPaperSize();
     function scaleContentToFit() {
     paper.transformToFitContent({padding: 20, minScaleX: 0.3, minScaleY: 0.3, maxScaleX: 1 , maxScaleY: 1});
+    paperSmall.transformToFitContent({padding: 20, minScaleX: 0.075, minScaleY: 0.075, maxScaleX: 0.25 , maxScaleY: 0.25});
     }
 
     /** LOCAL STORAGE FUNCTIONS */
-
     const graphObj = JSON.parse(localStorage.getItem('renderGraph'));
     if (graphObj) {
       paperGraph.current.model.fromJSON(graphObj);
@@ -184,7 +198,7 @@ const Paper = () => {
     /** EVENT LISTENERS */
 
     const paperEvents = PaperEvents(
-      paper, 
+      paper,
       panZoomInstance,
       elementRef,
       idRef,
@@ -196,15 +210,17 @@ const Paper = () => {
       roughRef, 
       borderRef, 
       styleRef, 
-      setElementType, 
       commandManager, 
       graph, 
       AOPelements,
       removeAllTools
     );
 
+    /**RESPONSIVE PAPER EVENTS*/
     window.addEventListener('resize', util.debounce(scaleContentToFit), false);
     scaleContentToFit();
+    window.addEventListener('resize', updateSmallPaperSize);
+
   
     /**KEYBOARD EVENTS */
     document.addEventListener('keydown', (event) => {
@@ -308,13 +324,24 @@ const Paper = () => {
     >
 
       <div
-        id='paper'
         ref={paperRef}
         style={{
           width: 'auto',
           height: 'auto',
-          background: "#EDFEFF",
+          background: "#FFFFFF",
           overflow:'auto'
+        }}
+      />
+
+      <div
+        ref={paperSmallRef}
+        id="paper-small" // Add ID here to apply custom CSS
+        style={{
+          zIndex: 10000,
+          background: '#FFF',
+          // left: window.innerWidth - 320,
+          // top: 20,
+          border: '1px solid #000',
         }}
       />
 
@@ -353,10 +380,9 @@ const Paper = () => {
             handleExport('png', bgRef.current);
           }
           if (type === 'trash'){
-            setGraph('');
             commandRef.current.reset();
             paperGraph.current.model.fromJSON({"cells": []});
-            paperRef.current.style.backgroundColor = '#EDFEFF';
+            paperRef.current.style.backgroundColor = '#FFFEFF';
           }
           if (type === "undo"){
             if (commandRef.current.hasUndo()){
@@ -372,7 +398,7 @@ const Paper = () => {
             applyDirectedLayout(graphRef.current);
           }
         }}
-        /** File selection initiate this */
+        // File selection initiate this
         fileSelectionEvent={(event) =>{
           importGraphFromJSON(paperGraph,event)
         }}
@@ -387,6 +413,7 @@ const Paper = () => {
       <Controls panZoom= {panZoomRef}/>
       
     </div>
+
   );
 }
 

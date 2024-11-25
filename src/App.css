@@ -5,6 +5,10 @@
     padding: 0;
   }
 
+  #paper-small {
+    position: absolute !important;
+  }
+  
   .modal-content {
     background-color: white;
     padding: 20px;
