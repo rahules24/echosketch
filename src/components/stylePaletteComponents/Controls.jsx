@@ -10,12 +10,11 @@ function Controls({panZoom}) {
         borderRadius: 5,
         border: '2px solid white',
         position: 'absolute',
-        top: 20,
-        left: 20,
+        top: '20px',
+        right: '30px',
         padding: '3px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         gap: '10px',
-        
       }}
     >
       <div

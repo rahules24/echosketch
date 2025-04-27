@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Container, Row, Col} from 'react-bootstrap';
 import debounce from 'lodash.debounce';
 import '../Header.css';
@@ -35,9 +35,18 @@ function Header({
             }) {
 
     const fileInputRef = useRef(null);
-    const [selectedOption, setSelectedOption] = useState(null);
+    const [selectedOption, setSelectedOption] = useState('');
     const [prevFont, setPrevFont] = useState('Arial');  // Initialize with default font
     const [prevBG, setPrevBG] = useState('#FFFFFF');  // Initialize with default BGcolor
+
+    const [toggleButtons, setToggleButtons] = useState({
+        undo: false,
+        redo: false,
+        trash: false,
+        dashedLink: false,
+        solidLink: false,
+        layout: false,
+    });
 
     const elements = [
         { icon: FaFont, label: 'Font', handler: 'font' },
@@ -54,6 +63,24 @@ function Header({
         { icon: SlActionRedo, label: 'Redo', handler: 'redo', size: 18 },
         { icon: FaTrash, label: 'Clear', handler: 'trash', size: 18 }
     ];
+
+    const toggleHandlers = ['undo', 'redo', 'trash','dashedLink', 'solidLink', 'layout'];
+
+    useEffect(() => {    
+        toggleHandlers.forEach(handler => {
+            if (toggleButtons[handler]) {
+                const timer = setTimeout(() => {
+                    setToggleButtons(prev => ({
+                        ...prev,
+                        [handler]: false
+                    }));
+                    setSelectedOption('');
+                }, 300);
+                
+                return () => clearTimeout(timer);
+            }
+        });
+    }, [toggleButtons]);
 
     const handleRoughDebounced = debounce((rough) => {
         if (elementRef.current) {
@@ -140,7 +167,20 @@ function Header({
     };
 
     const handleClick = (type) => {
-        if (type === 'open') {
+        // Handle toggle buttons (undo, redo, trash)
+        if (toggleHandlers.includes(type)) {
+            // Clear any selected option when clicking action buttons
+            // setSelectedOption('');
+            
+            // Set the toggle state for the clicked button
+            setToggleButtons(prev => ({
+                ...prev,
+                [type]: true
+            }));
+            
+            onSelect(type);
+        }
+        else if (type === 'open') {
             fileInputRef.current.click(); 
             onSelect(type);
             setSelectedOption(type);
@@ -150,7 +190,14 @@ function Header({
         }
     };
 
-    const getIconStyle = (type) => selectedOption === type ? { color: 'gray', fontWeight: 'bold' } : {};
+    const getIconStyle = (type) => {
+        // For toggle buttons
+        if (toggleHandlers.includes(type)) {
+            return toggleButtons[type] ? { color: 'gray', fontWeight: 'bold' } : {};
+        }
+        // For regular buttons
+        return selectedOption === type ? { color: 'gray', fontWeight: 'bold' } : {};
+    };
 
     const header = {
         position: 'fixed', 
@@ -194,7 +241,6 @@ function Header({
                         setPrevState={setPrevBG}
                     />
                 </Col>
-
 
                 <Col>
                     <DesignPalette 

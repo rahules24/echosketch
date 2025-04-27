@@ -49,7 +49,7 @@ const CreateResizeButton = (x, y, model, curtype, flagC, flagF) => {
           let newHeight = handleData.initialSize.height * scaleY;
         
           // Set minimum size limits
-          const MIN_SIZE = 50;
+          const MIN_SIZE = 10;
           newWidth = Math.max(MIN_SIZE, newWidth);
           newHeight = Math.max(MIN_SIZE, newHeight);
 
@@ -62,7 +62,7 @@ const CreateResizeButton = (x, y, model, curtype, flagC, flagF) => {
           document.removeEventListener('mouseup', handlePointerUp);
           handleData.resizing = false;
           const size = handleData.shape.size();
-          if (size.width < 20 || size.height < 20) {
+          if (size.width < 10 || size.height < 10) {
             handleData.shape.remove();
           }
         };

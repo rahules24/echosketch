@@ -9,11 +9,12 @@ const AddDoubleClickTools = (elementView, textEditorRef) => {
           useModelGeometry: false,
           x: '100%',
           action: function () {
-            elementView.model.remove(); // Remoing element from the diagram manually
+            elementView.model.remove();
+            textEditorRef.current.blur();
           },
         }),
         new elementTools.Boundary({
-          padding: 10,
+          padding: 4,
           rotate: true,
           useModelGeometry: false,
         }),

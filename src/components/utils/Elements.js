@@ -2,7 +2,7 @@ import { V, dia } from '@joint/core'
 
 /**
  * POINTERS- MIE/POLYGONS
- * BODY- KE/CIRCLE
+ * BODY- KE/CIRCLE (now oval-capable)
  */
 
 // Helper function to determine the value to use
@@ -26,7 +26,7 @@ const AOPelements = dia.Element.define('AOPelements', {
       fill: 'none',   //MIE-POLYGONS
     },
     body: {
-      fill: 'none',  // KE-CIRCLE
+      fill: 'none',  // KE-CIRCLE/OVAL
     },
     label: {
       textWrap: {
@@ -98,7 +98,7 @@ const AOPelements = dia.Element.define('AOPelements', {
           pointerShape: type,
           fill: fill,  // for all 
         },
-        body: {  // KE-CIRCLE
+        body: {  // KE-CIRCLE/OVAL
           rough: {
             type: type,
           },
@@ -144,17 +144,53 @@ const AOPelements = dia.Element.define('AOPelements', {
             });
             break;
           case 'KE':
+            // Use ellipse instead of circle to allow for non-uniform scaling
             const centerX = bbox.x + bbox.width / 2;
             const centerY = bbox.y + bbox.height / 2;
-            const radius = Math.min(bbox.width / 2, bbox.height / 2);
-            shape = r.generator.circle(centerX, centerY, radius * 2, {
-              fill: true,
-              roughness: roughness / 2.5,
-              hachureGap: 13,
-              fillWeight: 4,
-              zigzagOffset: 9,
-              fillStyle: style,
-            });
+            // Use actual width and height for ellipse dimensions
+            const radiusX = bbox.width / 2;
+            const radiusY = bbox.height / 2;
+            
+            // Check if rough.js supports ellipse directly
+            if (r.generator.ellipse) {
+              shape = r.generator.ellipse(centerX, centerY, radiusX * 2, radiusY * 2, {
+                fill: true,
+                roughness: roughness / 2.5,
+                hachureGap: 13,
+                fillWeight: 4,
+                zigzagOffset: 9,
+                fillStyle: style,
+              });
+            } else {
+              // Fallback to using a custom path for ellipse if rough.js doesn't support ellipse directly
+              // Create an ellipse path
+              const kappa = 0.5522848;
+              const ox = radiusX * kappa; // Control point offset horizontal
+              const oy = radiusY * kappa; // Control point offset vertical
+              
+              // Build the ellipse path
+              const ellipsePath = [
+                ['M', centerX - radiusX, centerY],
+                ['C', centerX - radiusX, centerY - oy, centerX - ox, centerY - radiusY, centerX, centerY - radiusY],
+                ['C', centerX + ox, centerY - radiusY, centerX + radiusX, centerY - oy, centerX + radiusX, centerY],
+                ['C', centerX + radiusX, centerY + oy, centerX + ox, centerY + radiusY, centerX, centerY + radiusY],
+                ['C', centerX - ox, centerY + radiusY, centerX - radiusX, centerY + oy, centerX - radiusX, centerY],
+                ['Z']
+              ];
+              
+              // Convert path to SVG path string
+              const pathData = ellipsePath.map(segment => segment.join(' ')).join(' ');
+              
+              // Use roughjs to draw the path
+              shape = r.generator.path(pathData, {
+                fill: true,
+                roughness: roughness / 2.5,
+                hachureGap: 13,
+                fillWeight: 4,
+                zigzagOffset: 9,
+                fillStyle: style,
+              });
+            }
             break;
           case 'AOP':
             shape = r.generator.polygon([ // don't use polygon if you want edges rounded
@@ -208,10 +244,12 @@ const AOPelements = dia.Element.define('AOPelements', {
             });
             break;
           case 'KE':
-            vel = V('circle').attr({
+            // Use ellipse instead of circle to allow for non-uniform scaling
+            vel = V('ellipse').attr({
               'cx': width / 2,
               'cy': height / 2,
-              'r': Math.min(width, height) / 2,
+              'rx': width / 2,   // Use actual width for x-radius
+              'ry': height / 2,  // Use actual height for y-radius
             });
             break;
           case 'AOP':

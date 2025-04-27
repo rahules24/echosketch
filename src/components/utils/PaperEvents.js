@@ -21,6 +21,27 @@ const PaperEvents = (
     AOPelements,
     removeAllTools,
   ) => {
+    
+    // Add this variable to store the current delete handler
+    let currentDeleteHandler = null;
+
+    // Function to set up the delete handler for a specific view
+    const setupDeleteHandler = (view) => {
+      // Remove previous handler if it exists
+      if (currentDeleteHandler) {
+        document.removeEventListener('keydown', currentDeleteHandler);
+      }
+      
+      // Create and store new handler
+      currentDeleteHandler = (event) => {
+        if (event.key === "Delete" && view && view.model) {
+          view.model.remove();
+        }
+      };
+      
+      // Add the new handler
+      document.addEventListener('keydown', currentDeleteHandler);
+    };
 
     const paperEvents = {
 
@@ -58,13 +79,15 @@ const PaperEvents = (
           textEditorRef.current.blur();
           highlighters.mask.add(elementView, 'body', elementView.model["id"], {
             layer: 'back',
-            padding: 5,
+            padding: 2,
             attrs: {
-                'stroke-width': 3,
-                'stroke-linecap': 'round',
-                'stroke': 'rgba(63, 0, 255, 0.5)',
+                'stroke-width': 2,
+                'stroke': 'rgba(63, 0, 255)',
             },
           });
+          
+          // Use the new function instead of inline event listener
+          setupDeleteHandler(elementView);
         },
         'element:pointerdblclick': function (elementView) {
           elementRef.current = null;
@@ -125,17 +148,19 @@ const PaperEvents = (
               if (cellView && idRef.current !== evt.target.id) {
                   highlighters.mask.add(cellView, 'body', cellView.model["id"], {
                   layer: 'back',
-                  padding: 5,
+                  padding: 3,
                   attrs: {
-                      'stroke-width': 3,
-                      'stroke-linecap': 'round',
-                      'stroke': 'rgba(63, 0, 255, 0.5)',
+                      'stroke-width': 2,
+                      'stroke': 'rgba(63, 0, 255)',
                   },
                 });
                 elementRef.current = cellView.model;
+                
+                // Use the new function instead of inline event listener
+                setupDeleteHandler(cellView);
               }
               const size = cell.size();
-              if (size.width < 20 || size.height < 20) cell.remove();
+              if (size.width < 10 || size.height < 10) cell.remove();
             }
           }
           evt.handled = false;

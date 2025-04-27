@@ -1,5 +1,5 @@
 //libraries
-import { connectionStrategies, dia, shapes, util } from '@joint/core';
+import { connectionStrategies, dia, shapes } from '@joint/core';
 import { useLayoutEffect, useRef, useEffect } from 'react';
 import rough from 'roughjs';
 import svgPanZoom from 'svg-pan-zoom';
@@ -7,6 +7,7 @@ import svgPanZoom from 'svg-pan-zoom';
 // components
 import Header from './Header';
 import Controls from './stylePaletteComponents/Controls';
+import SirenScripts from './stylePaletteComponents/SirenScripts.jsx';
 
 //utilities
 import AOPelements from './utils/Elements';
@@ -21,7 +22,6 @@ const Paper = () => {
 
   /**paper and papermodel ref */
   const paperRef = useRef(null);
-  const paperSmallRef = useRef(null);
   const paperGraph = useRef(null);
   const commandRef = useRef(null);
   const graphRef = useRef(null);
@@ -67,21 +67,7 @@ const Paper = () => {
     });
   };
 
-  const updateSmallPaperSize = () => {
-    if (paperSmallRef.current) {
-      const smallPaperElement = paperSmallRef.current;
-      
-      const width = window.innerWidth * 0.25; 
-      const height = window.innerHeight * 0.25;
-      const left = window.innerWidth - width - 20; 
-      const top = 20;
 
-      smallPaperElement.style.width = `${width}px`;
-      smallPaperElement.style.height = `${height}px`;
-      smallPaperElement.style.left = `${left}px`;
-      smallPaperElement.style.top = `${top}px`;
-    }
-  };
 
   useLayoutEffect(() => {
   
@@ -127,17 +113,8 @@ const Paper = () => {
       }
     });
 
-    const paperSmall = new dia.Paper({
-      el: paperSmallRef.current,
-      model: graph,
-      gridSize: 1,
-      interactive: false,
-      cellViewNamespace: customNamespace,
-    });
-
     /*  making paper rough */
     const Rough = rough.svg(paper.svg);
-    const RoughSmall = rough.svg(paperSmall.svg);
     const borderEl = Rough.rectangle(0, 0,
                           window.innerWidth,
                           window.innerHeight,
@@ -146,7 +123,6 @@ const Paper = () => {
                       });
     paper.svg.appendChild(borderEl);
     paper.rough = Rough;
-    paperSmall.rough = RoughSmall;
 
     /*  Integrating svg-pan-zoom with paper   */
     const panZoomInstance = svgPanZoom(Rough.svg, {
@@ -154,18 +130,15 @@ const Paper = () => {
       minZoom: 0.1,
       maxZoom: 5,
       onUpdatedCTM: function(matrix) {
-        const scaleFactor = 0.25;
         const { a, d, e, f } = matrix;
         const { a: ca, d: cd, e: ce, f: cf } = panZoomInstance.getZoom();
         const translateChanged = e !== ce || f !== cf;
         if (translateChanged) {
           paper.trigger('translate', e - ce, f - cf);
-          paperSmall.translate(e * scaleFactor, f * scaleFactor);
         }
         const scaleChanged = a !== ca || d !== cd;
         if (scaleChanged) {
           paper.trigger('scale', a, d, e, f);
-          paperSmall.scale(a * scaleFactor, d * scaleFactor);
         }
       }
     });
@@ -181,13 +154,6 @@ const Paper = () => {
     });
     
     commandRef.current = commandManager;
-
-    /** Function to make paper responsive */
-    updateSmallPaperSize();
-    function scaleContentToFit() {
-    paper.transformToFitContent({padding: 20, minScaleX: 0.3, minScaleY: 0.3, maxScaleX: 1 , maxScaleY: 1});
-    paperSmall.transformToFitContent({padding: 20, minScaleX: 0.075, minScaleY: 0.075, maxScaleX: 0.25 , maxScaleY: 0.25});
-    }
 
     /** LOCAL STORAGE FUNCTIONS */
     const graphObj = JSON.parse(localStorage.getItem('renderGraph'));
@@ -213,14 +179,11 @@ const Paper = () => {
       commandManager, 
       graph, 
       AOPelements,
-      removeAllTools
+      removeAllTools,
     );
 
     /**RESPONSIVE PAPER EVENTS*/
-    window.addEventListener('resize', util.debounce(scaleContentToFit), false);
-    scaleContentToFit();
-    window.addEventListener('resize', updateSmallPaperSize);
-
+    // window.addEventListener('resize', handPaperResize, false);
   
     /**KEYBOARD EVENTS */
     document.addEventListener('keydown', (event) => {
@@ -320,29 +283,26 @@ const Paper = () => {
         height: '100%',
         display: 'flex',
         overflow: 'hidden',
+        flexDirection: 'column', // Changed to column to stack elements vertically
       }}
     >
-
+      
       <div
         ref={paperRef}
         style={{
-          width: 'auto',
-          height: 'auto',
+          width: '100%',
+          flex: 1, // Take up available space
           background: "#FFFFFF",
-          overflow:'auto'
+          overflow: 'auto'
         }}
       />
 
+      <SirenScripts color={'#000'} />
+
       <div
-        ref={paperSmallRef}
-        id="paper-small" // Add ID here to apply custom CSS
-        style={{
-          zIndex: 10000,
-          background: '#FFF',
-          // left: window.innerWidth - 320,
-          // top: 20,
-          border: '1px solid #000',
-        }}
+        ref={textEditorRef}
+        className="text-editor"
+        contentEditable="true"
       />
 
       <Header
@@ -404,14 +364,8 @@ const Paper = () => {
         }}
       />
 
-      <div
-        ref={textEditorRef}
-        className="text-editor"
-        contentEditable="true"
-      />
-
       <Controls panZoom= {panZoomRef}/>
-      
+
     </div>
 
   );
