@@ -110,36 +110,6 @@ export default function About() {
                                 </div>
                             </div>
                         </div>
-                        {/* <div className="accordion-item">
-                            <h2 className="accordion-header">
-                                <button style={fontStyle} className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                    echoSketch
-                                </button>
-                            </h2>
-                            <div id="collapseTwo" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                                <div className="accordion-body">
-                                    <Container className='align-item-center'>
-                                        <Row>
-                                                <div style={{ display: 'flex', alignItems: 'left' }}>
-                                            <Col sm={3}>
-                                                    <img
-                                                        src={takemikey}
-                                                        alt="Takemikey"
-                                                        style={{ width: '95%', height: 'auto',   borderRadius: '10%' }}
-                                                        />                                                    
-                                                        </Col>
-                                            <Col sm={9}>
-                                                    <div style={{ lineHeight: '1.5', marginLeft: '45px', }}>
-                                                    <br /><br /><br />
-                                                        <i>“Takemitchy is my hero.”</i><br />— Mikey, Chapter 188
-                                                    </div>
-                                            </Col>
-                                                </div>
-                                        </Row>
-                                    </Container>
-                                </div>
-                            </div>
-                        </div> */}
                         <div className="accordion-item">
                             <h2 className="accordion-header">
                                 <button style={fontStyle} className="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">

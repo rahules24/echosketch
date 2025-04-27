@@ -74,6 +74,7 @@ const PaperEvents = (
         'element:pointerdown': function (elementView, evt) {
           idRef.current = evt.target.id;
           removeAllTools(paper, graph, true, true);
+          AddDoubleClickTools(elementView, textEditorRef);
           elementRef.current = elementView.model;
           if (selectedToolRef.current ==='select') panZoomInstance.enablePan();
           textEditorRef.current.blur();
@@ -90,10 +91,19 @@ const PaperEvents = (
           setupDeleteHandler(elementView);
         },
         'element:pointerdblclick': function (elementView) {
+          // First completely remove all tools
+          elementView.removeTools();
+          paper.hideTools();
+          
+          // Then forcibly remove all tools again to be sure
+          removeAllTools(paper, graph, true, true);
+          
           elementRef.current = null;
-          removeAllTools(paper, graph, false, true);
-          AddDoubleClickTools(elementView, textEditorRef);
-          AddLabel(commandManager, elementView, textEditorRef);
+          
+          // Add the label editor after ensuring tools are gone
+          setTimeout(() => {
+            AddLabel(commandManager, elementView, textEditorRef);
+          }, 0);
         },
         
         /** PAPER EVENTS */
@@ -155,7 +165,7 @@ const PaperEvents = (
                   },
                 });
                 elementRef.current = cellView.model;
-                
+                AddDoubleClickTools(cellView, textEditorRef);
                 // Use the new function instead of inline event listener
                 setupDeleteHandler(cellView);
               }
