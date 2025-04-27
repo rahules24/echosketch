@@ -1,7 +1,8 @@
 {
-  "name": "aop-sketchpad",
+  "name": "echosketch",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://rahules24.github.io/echoSketch",
   "dependencies": {
     "@joint/core": "^4.0.4",
     "@joint/layout-directed-graph": "^4.0.3",
