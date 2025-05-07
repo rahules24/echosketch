@@ -2,6 +2,7 @@ import { dia, g, linkTools, highlighters } from '@joint/core';
 
 import AddLabel from './AddLabel';
 import AddDoubleClickTools from './AddTools';
+import { RoughLink } from './Links';
 
 const PaperEvents = (
     paper,
@@ -20,6 +21,7 @@ const PaperEvents = (
     graph,
     AOPelements,
     removeAllTools,
+    getLinkAttrs,
   ) => {
     
     // Add this variable to store the current delete handler
@@ -43,6 +45,24 @@ const PaperEvents = (
       document.addEventListener('keydown', currentDeleteHandler);
     };
 
+    paper.currentLink = null;
+    paper.linkCreationMode = false;
+    
+    // Helper function to find element under point
+    const findElementUnderPoint = (x, y) => {
+      // Convert client coordinates to paper coordinates if needed
+      const elementBelow = paper.findViewsFromPoint({ x, y })[0];
+      return elementBelow && elementBelow.model.isElement() ? elementBelow : null;
+    };
+
+    function createLink(source, x, y) {
+      return new RoughLink({
+        source: source,
+        target: { x, y }, // Initial target follows mouse
+        attrs: getLinkAttrs()
+      });
+    }    
+
     const paperEvents = {
 
         /** LINK EVENTS */
@@ -61,14 +81,8 @@ const PaperEvents = (
           linkView.removeTools();
         },
         'link:pointerup': function(linkView) {
-            const link = linkView.model;
-            const source = link.getSourceElement();
-            const target = link.getTargetElement();
-            if (!source || !target || source === target) {
-              link.remove();
-            }
             selectedToolRef.current = '';
-          },
+        },
 
         /** ELEMENT EVENTS */
         'element:pointerdown': function (elementView, evt) {
@@ -86,9 +100,38 @@ const PaperEvents = (
                 'stroke': 'rgba(63, 0, 255)',
             },
           });
+          if (selectedToolRef.current !== 'dashedLink' && selectedToolRef.current !== 'solidLink') {
+            graph.trigger('batch:stop');
+            graph.trigger('batch:start');
+          }
+          // Handle link creation when starting from an element
+          if (selectedToolRef.current === 'dashedLink' || selectedToolRef.current === 'solidLink') {
+            // Get position of the element
+            const elementPosition = elementView.model.position();
+            const elementSize = elementView.model.size();
+            const x = elementPosition.x + elementSize.width/2;
+            const y = elementPosition.y + elementSize.height/2;
+            
+            const link = createLink({ id: elementView.model.id }, x, y, selectedToolRef.current);
+
+            graph.addCell(link);
+            paper.currentLink = link;
+            paper.linkCreationMode = true;
+            paper.currentLinkSource = 'element';
+          }
           
           // Use the new function instead of inline event listener
           setupDeleteHandler(elementView);
+        },
+        'element:pointerup': function(elementView, evt) {
+          if (paper.currentLink) {
+            // Snap the link's target to the clicked element
+            paper.currentLink.set('target', { id: elementView.model.id });
+            paper.currentLink = null; // Clear current link
+            paper.linkCreationMode = false;
+            paper.currentLinkSource = null;
+            selectedToolRef.current = '';
+          }
         },
         'element:pointerdblclick': function (elementView) {
           // First completely remove all tools
@@ -115,6 +158,19 @@ const PaperEvents = (
             graph.trigger('batch:stop');
             graph.trigger('batch:start');
           }
+          if (selectedToolRef.current === 'dashedLink' || selectedToolRef.current === 'solidLink') {
+            const link = createLink({ x, y }, x, y, selectedToolRef.current);
+
+            graph.addCell(link);
+        
+            // Store the link reference for drag updates
+            paper.currentLink = link;
+            paper.linkCreationMode = true;
+            paper.currentLinkSource = 'blank';
+            
+            // Save the starting point coordinates
+            paper.linkStartPoint = { x, y };
+          }
           if ((selectedToolRef.current === "MIE" || selectedToolRef.current === "KE" || selectedToolRef.current === "AO" || selectedToolRef.current === "AOP") && evt.button === 0){
             var data = evt.data = {};
             var cell;
@@ -133,23 +189,103 @@ const PaperEvents = (
           }
           textEditorRef.current.blur();
         },
+        'mousemove': function(evt, x, y) {
+          if (paper.currentLink && paper.linkCreationMode) { 
+            // Check if there's an element under the cursor
+            const elementBelow = findElementUnderPoint(x, y);
+            
+            // Update link endpoint to either snap to element or follow cursor
+            if (elementBelow) {
+              // Snap to the element
+              paper.currentLink.set('target', { id: elementBelow.model.id });
+            } else {
+              // Follow the cursor
+              paper.currentLink.set('target', { x, y });
+            }
+          }
+        },
         'blank:pointermove': function(evt, x, y) {
           if (selectedToolRef.current !=="select" && selectedToolRef.current !== ''){
-            panZoomInstance.disablePan()
+            panZoomInstance.disablePan();
             var data = evt.data;
             var cell = data.cell;
             var bbox = new g.Rect(data.x, data.y, x - data.x, y - data.y);
             bbox.normalize();
             if (cell){
-            cell.set({
-              position: { x: bbox.x, y: bbox.y },
-              size: { width: Math.max(bbox.width, 1), height: Math.max(bbox.height, 1) }
-            });
+              cell.set({
+                position: { x: bbox.x, y: bbox.y },
+                size: { width: Math.max(bbox.width, 1), height: Math.max(bbox.height, 1) }
+              });
+            }
           }
-        }
+          
+          // Handle link movement regardless of whether another tool is active
+          if (paper.currentLink && paper.linkCreationMode) {
+            // Check if there's an element under the cursor
+            const elementBelow = findElementUnderPoint(x, y);
+            
+            // Update link endpoint to either snap to element or follow cursor
+            if (elementBelow) {
+              // Highlight the element to show it can be connected
+              highlighters.mask.add(elementBelow, 'body', 'highlight-connect', {
+                layer: 'back',
+                padding: 0,
+                attrs: {
+                  'stroke-width': 3,
+                  'stroke': 'rgba(255, 166, 0, 0.72)',
+                },
+              });
+              
+              // Snap to the element
+              paper.currentLink.set('target', { id: elementBelow.model.id });
+              
+              // Remember the last element we were hovering over
+              paper.lastHoveredElement = elementBelow;
+            } else {
+              // Remove highlight from the last element if we're no longer over it
+              if (paper.lastHoveredElement) {
+                highlighters.mask.remove(paper.lastHoveredElement, 'highlight-connect');
+                paper.lastHoveredElement = null;
+              }
+              
+              // Follow the cursor
+              paper.currentLink.set('target', { x, y });
+            }
+          }
         },
-        'blank:pointerup': function(evt) {
+        'blank:pointerup': function(evt, x, y) {
           graph.trigger('batch:stop');
+          
+          if (paper.currentLink && paper.linkCreationMode) {
+            // Check if the link is connected to an element
+            const targetIsElement = typeof paper.currentLink.get('target') === 'object' && 
+                                   paper.currentLink.get('target').id;
+            
+            // If not connected to an element and too short, remove it
+            if (!targetIsElement && paper.linkStartPoint) {
+              const dx = x - paper.linkStartPoint.x;
+              const dy = y - paper.linkStartPoint.y;
+              const distance = Math.sqrt(dx*dx + dy*dy);
+              
+              // Remove only if the distance is too small
+              if (distance < 20) {
+                paper.currentLink.remove();
+              }
+            }
+            
+            // Remove highlight from the last element
+            if (paper.lastHoveredElement) {
+              highlighters.mask.remove(paper.lastHoveredElement, 'highlight-connect');
+              paper.lastHoveredElement = null;
+            }
+            
+            paper.currentLink = null;
+            paper.linkCreationMode = false;
+            paper.linkStartPoint = null;
+            paper.currentLinkSource = null;
+            selectedToolRef.current = '';
+          }
+          
           if (selectedToolRef.current === 'KE' || selectedToolRef.current === 'MIE' || selectedToolRef.current === 'AO' || selectedToolRef.current === 'AOP'){
             const data = evt.data;
             const cell = data.cell;
@@ -174,16 +310,8 @@ const PaperEvents = (
             }
           }
           evt.handled = false;
-          graph.getLinks().forEach(link => {
-            const source = link.getSourceElement();
-            const target = link.getTargetElement();
-            if (!source || !target) {
-              link.remove();
-            }
-          });
         },
     };
-
   return paperEvents;
 }
 export default PaperEvents

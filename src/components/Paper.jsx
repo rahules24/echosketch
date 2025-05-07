@@ -33,6 +33,12 @@ const Paper = () => {
   const styleRef = useRef('solid');
   const roughRef = useRef([0.5]);
   const bgRef = useRef('#FFFFFF');
+  const getLinkAttrs = () => ({
+    line: {
+      stroke: 'red',
+      'stroke-dasharray': selectedToolRef.current === 'dashedLink' ? '15' : '0',
+    }
+  });  
 
   /** tool refs */
   const selectedToolRef = useRef('');
@@ -67,8 +73,6 @@ const Paper = () => {
     });
   };
 
-
-
   useLayoutEffect(() => {
   
     var customNamespace = {
@@ -98,19 +102,24 @@ const Paper = () => {
       clickThreshold: 5,
       async: true,
       connectionStrategy: connectionStrategies.pinAbsolute,  //multiple links between same elements
+
       defaultLink: ()=> {
-        return new RoughLink({
-          attrs: {
-              line: {
-                  'stroke-dasharray': selectedToolRef.current === 'dashedLink' ? '8' : '0',
-              }
-          }
-      });
+        return new RoughLink({ attrs: getLinkAttrs()});
       },
-      validateMagnet: function (_view, magnet) {
-        panZoomInstance.disablePan();
-        return magnet.getAttribute('magnet') === 'on-shift' && (selectedToolRef.current==='dashedLink' || selectedToolRef.current==='solidLink'); //makes sure there are no links from nothing
-      }
+
+validateMagnet: function (_view, magnet) {
+  // Allow connections from both blank space and magnets when in link mode
+  if (selectedToolRef.current === 'dashedLink' || selectedToolRef.current === 'solidLink') {
+    // If magnet is null, we're starting from blank space, and that's allowed
+    if (!magnet) return true;
+    
+    // If we have a magnet, check if it's a valid connection point
+    return magnet.getAttribute('magnet') === 'on-shift';
+  }
+  
+  // Not in link mode, don't allow connections
+  return false;
+}
     });
 
     /*  making paper rough */
@@ -180,6 +189,7 @@ const Paper = () => {
       graph, 
       AOPelements,
       removeAllTools,
+      getLinkAttrs,
     );
 
     /**RESPONSIVE PAPER EVENTS*/
