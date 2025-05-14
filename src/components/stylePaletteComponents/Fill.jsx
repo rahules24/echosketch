@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GiLargePaintBrush } from "react-icons/gi";
 import tippy from 'tippy.js';

@@ -4,12 +4,14 @@ import debounce from 'lodash.debounce';
 import '../Header.css';
 
 /**ICONS */
-import { BsDashLg } from "react-icons/bs";
+import { BsDashLg, BsFileFontFill } from "react-icons/bs";
 import {
     FaCircle,
     FaLocationArrow, FaSquare, FaTrash
 } from "react-icons/fa";
-import { FaDiamond, FaFont } from "react-icons/fa6";
+import { FaDiamond } from "react-icons/fa6";
+import { ImFont } from "react-icons/im";
+
 import { IoHandLeft, IoTriangle } from "react-icons/io5";
 import { RxBorderDashed } from "react-icons/rx";
 import { SlActionRedo, SlActionUndo } from "react-icons/sl";
@@ -45,12 +47,13 @@ function Header({
         trash: false,
         dashedLink: false,
         solidLink: false,
-        layout: false,
+        // layout: false,
     });
 
     const elements = [
-        { icon: FaFont, label: 'Font', handler: 'font' },
-        { icon: IoGitNetworkSharp, label: 'Format', handler: 'layout',size: 20 },
+        { icon: ImFont, label: 'Font', handler: 'font' },
+        { icon: BsFileFontFill, label: 'Text', handler: 'text', size: 20 },
+        // { icon: IoGitNetworkSharp, label: 'Format', handler: 'layout',size: 20 },
         { icon: FaSquare, label: 'MIE', handler: 'MIE', size: 19 },
         { icon: FaCircle, label: 'KE', handler: 'KE', size: 20 },
         { icon: IoTriangle, label: 'AOP', handler: 'AOP', size: 22 },

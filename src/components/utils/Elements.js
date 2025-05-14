@@ -32,7 +32,7 @@ const AOPelements = dia.Element.define('AOPelements', {
       textWrap: {
         ellipsis: true,
       },
-      z: 10,
+      // z: 10,
       textVerticalAnchor: 'middle',
       textAnchor: 'middle',
       border: 'none',

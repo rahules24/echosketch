@@ -3,7 +3,7 @@ import { dia } from '@joint/core';
 export const RoughLink = dia.Link.define('RoughLink',
   //1
   {
-    z: 1,
+    // z: 1000,
     connector: { name: 'smooth' },
     attrs: {
       line: {

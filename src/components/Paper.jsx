@@ -15,7 +15,7 @@ import exportAsPNGorJPEG from './utils/ExportImage';
 import { RoughLink, UpdateLinkEndpoints } from './utils/Links';
 import { exportGraphAsJSON, importGraphFromJSON } from './utils/SaveGraph';
 import CommandManager from './utils/CommandManger.js';
-import applyDirectedLayout from './layout/directed';
+// import applyDirectedLayout from './layout/directed';
 import PaperEvents from './utils/PaperEvents';
 
 const Paper = () => {
@@ -104,22 +104,24 @@ const Paper = () => {
       connectionStrategy: connectionStrategies.pinAbsolute,  //multiple links between same elements
 
       defaultLink: ()=> {
-        return new RoughLink({ attrs: getLinkAttrs()});
+        return new RoughLink({ 
+          // attrs: getLinkAttrs()
+        });
       },
 
-validateMagnet: function (_view, magnet) {
-  // Allow connections from both blank space and magnets when in link mode
-  if (selectedToolRef.current === 'dashedLink' || selectedToolRef.current === 'solidLink') {
-    // If magnet is null, we're starting from blank space, and that's allowed
-    if (!magnet) return true;
-    
-    // If we have a magnet, check if it's a valid connection point
-    return magnet.getAttribute('magnet') === 'on-shift';
-  }
-  
-  // Not in link mode, don't allow connections
-  return false;
-}
+      validateMagnet: function (_view, magnet) {
+        // Allow connections from both blank space and magnets when in link mode
+        if (selectedToolRef.current === 'dashedLink' || selectedToolRef.current === 'solidLink') {
+          // If magnet is null, we're starting from blank space, and that's allowed
+          if (!magnet) return true;
+          
+          // If we have a magnet, check if it's a valid connection point
+          return magnet.getAttribute('magnet') === 'on-shift';
+        }
+        
+        // Not in link mode, don't allow connections
+        return false;
+      }
     });
 
     /*  making paper rough */
@@ -153,6 +155,8 @@ validateMagnet: function (_view, magnet) {
     });
 
     panZoomRef.current = panZoomInstance;
+    panZoomInstance.disablePan();
+
 
     /** paper ref */
     paperGraph.current = paper;
@@ -364,9 +368,9 @@ validateMagnet: function (_view, magnet) {
               commandRef.current.redo()
             }
           }
-          if (type === "layout"){
-            applyDirectedLayout(graphRef.current);
-          }
+          // if (type === "layout"){
+          //   applyDirectedLayout(graphRef.current);
+          // }
         }}
         // File selection initiate this
         fileSelectionEvent={(event) =>{

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import { FaFont } from "react-icons/fa";
+import { ImFont } from "react-icons/im";
 import tippy from 'tippy.js';
 import 'tippy.js/dist/tippy.css';  // Import tippy CSS
 
@@ -99,7 +99,7 @@ function Fonts({ onChange, prevState, setPrevState }) {
 
   return (
     <div ref={fontRef}>
-      <FaFont style={{ fontSize: '19px' }} />
+      <ImFont style={{ fontSize: '18px' }} />
     </div>
   );
 }
