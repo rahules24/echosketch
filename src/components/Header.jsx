@@ -4,7 +4,7 @@ import debounce from 'lodash.debounce';
 import '../Header.css';
 
 /**ICONS */
-import { BsDashLg, BsFileFontFill } from "react-icons/bs";
+import { BsDashLg, BsParagraph  } from "react-icons/bs";
 import {
     FaCircle,
     FaLocationArrow, FaSquare, FaTrash
@@ -52,7 +52,7 @@ function Header({
 
     const elements = [
         { icon: ImFont, label: 'Font', handler: 'font' },
-        { icon: BsFileFontFill, label: 'Text', handler: 'text', size: 20 },
+        { icon: BsParagraph , label: 'Text', handler: 'text', size: 20 },
         // { icon: IoGitNetworkSharp, label: 'Format', handler: 'layout',size: 20 },
         { icon: FaSquare, label: 'MIE', handler: 'MIE', size: 19 },
         { icon: FaCircle, label: 'KE', handler: 'KE', size: 20 },
