@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/echosketch/static/css/main.9ac42a23.css",
-    "main.js": "/echosketch/static/js/main.747f1ba7.js",
-    "static/js/919.c1d870ab.chunk.js": "/echosketch/static/js/919.c1d870ab.chunk.js",
+    "main.js": "/echosketch/static/js/main.5611054f.js",
+    "static/js/919.8a7275e9.chunk.js": "/echosketch/static/js/919.8a7275e9.chunk.js",
     "static/media/totoro.png": "/echosketch/static/media/totoro.4a332a51a922c08db1e6.png",
     "static/media/favlogo.png": "/echosketch/static/media/favlogo.094c2c24557b27dd3692.png",
     "static/media/brand-icons.svg": "/echosketch/static/media/brand-icons.6729d29753e000c17489.svg",
@@ -23,11 +23,11 @@
     "static/media/outline-icons.woff2": "/echosketch/static/media/outline-icons.687a4990ea22bb1a49d4.woff2",
     "index.html": "/echosketch/index.html",
     "main.9ac42a23.css.map": "/echosketch/static/css/main.9ac42a23.css.map",
-    "main.747f1ba7.js.map": "/echosketch/static/js/main.747f1ba7.js.map",
-    "919.c1d870ab.chunk.js.map": "/echosketch/static/js/919.c1d870ab.chunk.js.map"
+    "main.5611054f.js.map": "/echosketch/static/js/main.5611054f.js.map",
+    "919.8a7275e9.chunk.js.map": "/echosketch/static/js/919.8a7275e9.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.9ac42a23.css",
-    "static/js/main.747f1ba7.js"
+    "static/js/main.5611054f.js"
   ]
 }
